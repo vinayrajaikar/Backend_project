@@ -3,6 +3,7 @@
 // import express from "express";
 // const app = express();
 import connectDB from "./db/index.js";
+import { app } from "./app.js";
 
 // require('dotenv').config({path: './env'}) this require stmt gives inconsistency in our code
 import dotenv from "dotenv";
@@ -15,9 +16,15 @@ dotenv.config({
 
 // APPROACH 2:
 
-connectDB();
-
-
+connectDB()
+.then(()=>{
+    app.listen(process.env.PORT || 8000,()=>{
+        console.log(`Server is running on port ${process.env.PORT}`)
+    })
+})
+.catch((err)=>{
+    console.log("Mongo db connection failed!!! ",err);
+})
 
 
 
