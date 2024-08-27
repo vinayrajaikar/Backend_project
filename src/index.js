@@ -6,13 +6,17 @@ import connectDB from "./db/index.js";
 import { app } from "./app.js";
 
 // require('dotenv').config({path: './env'}) this require stmt gives inconsistency in our code
+
+// As early as possible, when u make project import dot env in main file, to give access of env to
+// to all other files.
 import dotenv from "dotenv";
 
 dotenv.config({
     path: './env' 
 })
 
-
+// As early as possible, when u make project import dot env in main file, to give access of env to
+// to all other files.
 
 // APPROACH 2:
 
