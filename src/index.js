@@ -12,7 +12,7 @@ import { app } from "./app.js";
 import dotenv from "dotenv";
 
 dotenv.config({
-    path: './env' 
+    path: './.env' 
 })
 
 // As early as possible, when u make project import dot env in main file, to give access of env to
