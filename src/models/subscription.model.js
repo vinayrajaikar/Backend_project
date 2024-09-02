@@ -13,9 +13,6 @@ const subscriptionSchema = new Schema({
             required: true
         }
 
-
-
-
     },{
         timestamps: true
         }
