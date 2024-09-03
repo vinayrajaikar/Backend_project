@@ -9,10 +9,12 @@ import { response } from "express";
 const generateAccessAndRefreshToken =async(userId)=>{
     try{
         const user = await User.findById(userId);
+        // console.log(user)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
         // adding refresh token to model
+        user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false })
 
         return {accessToken, refreshToken}
@@ -165,7 +167,7 @@ const logoutUser = asyncHandler( async(req,res) => {
         req.user._id,
         {
             $unset: {
-                refreshToken: undefined
+                refreshToken: 1// this remove the field from document
             }
         },
         {
@@ -186,19 +188,25 @@ const logoutUser = asyncHandler( async(req,res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-try {
-        const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
-    
-        if(!incomingRefreshToken){
-            throw new ApiError(401, "unauthorized request")
-        }
-    
+
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    console.log("Refresh token: " + incomingRefreshToken)
+
+    if(!incomingRefreshToken){
+        throw new ApiError(401, "unauthorized request")
+    }
+
+    try {
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET,
         )
+
+        console.log(decodedToken)
     
-        const user = User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id)
+        console.log(user)
     
         if(!user){
             throw new ApiError(401, "Invalid refresh token")
@@ -252,6 +260,7 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
 })
 
 const getCurrentUser = asyncHandler(async(req,res)=>{
+
     return res
     .status(200)
     .json(new ApiResponse(200, req.user, "User details"))
@@ -282,11 +291,13 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
 
 const updateUserAvatar = asyncHandler(async(req,res)=>{
     const avatarLocalPath = req.file?.path
+    console.log(req.file)
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar file is missing!")
     }
 
-    const avatar = uploadOnCloudinary(avatarLocalPath)
+    const avatar =await uploadOnCloudinary(avatarLocalPath)
+    console.log(avatar);
 
     // Todo : delete old image
     // pending
@@ -316,12 +327,13 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
 
 const updateUserCoverImage = asyncHandler(async(req,res)=>{
 
+    console.log(req.file)
     const CoverImageLocalPath = req.file?.path
     if(!CoverImageLocalPath){
         throw new ApiError(400,"CoverImage file is missing!")
     }
 
-    const coverImage = uploadOnCloudinary(CoverImageLocalPath)
+    const coverImage =await uploadOnCloudinary(CoverImageLocalPath)
 
     if(!coverImage.url){
         throw new ApiError(400,"Error while uploading CoverImage to cloudinary!")
@@ -407,8 +419,6 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
     return res.status(200)
     .status(200)
     .json(new ApiResponse(200, channel[0], "User Channel Fetched Succesfully"))
-
-
 })
 
 const getWatchHistory = asyncHandler(async(req,res)=>{
